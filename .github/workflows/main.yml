@@ -1,7 +1,7 @@
 name: Build A15 Zuma Pro Kernel
 
 on:
-  workflow_call:  # This allows this workflow to be called from another workflow
+  workflow_dispatch:
   
 jobs:
   build-kernel-a15-zumapro-kernelsu-susfs:
