@@ -46,13 +46,13 @@ jobs:
           cp -r ../susfs4ksu/kernel_patches/fs/* ./fs/
           cp -r ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
           patch -p1 < 69_hide_stuff.patch || true
-          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+          patch -p1 --fuzz=3 < 50_add_susfs_in_gki-android14-6.1.patch || true
           cd KernelSU-Next
           cd .. # Return to the config directory
 
-          for patch in ../kernel_patches/*.patch; do
+          #for patch in ../kernel_patches/*.patch; do
             #patch -p1 --fuzz=3 < "$patch" || true
-          done
+          #done
 
           sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
           sed -i "s/length of string: %u/length of string: %lu/g" ./fs/susfs.c
