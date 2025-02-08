@@ -28,7 +28,7 @@ jobs:
 
           git clone https://github.com/TheWildJames/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
-          git clone https://github.com/TheWildJames/kernel_patches.git
+          git clone https://github.com/WildPlusKernel/kernel_patches.git
           git clone https://github.com/kerneltoast/android_kernel_google_zumapro # Clone the config repo
 
           cd android_kernel_google_zumapro # Now you can cd!
@@ -42,21 +42,26 @@ jobs:
           # Apply patches (all relative to the config directory)
           cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
+          cp ../kernel_patches/69_hide_stuff.patch ./
           cp -r ../susfs4ksu/kernel_patches/fs/* ./fs/
           cp -r ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
+          patch -p1 < 69_hide_stuff.patch || true
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           cd KernelSU-Next
           cd .. # Return to the config directory
 
           for patch in ../kernel_patches/*.patch; do
-            patch -p1 --fuzz=3 < "$patch" || true
+            #patch -p1 --fuzz=3 < "$patch" || true
           done
 
           sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
           sed -i "s/length of string: %u/length of string: %lu/g" ./fs/susfs.c
-          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-Sultan-Cabage"/' ./arch/arm64/configs/zumapro_defconfig
 
-          printf '%s\n' \ # SUSFS Config
+          cd android_kernel_google_zumapro
+          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-Sultan-Cabage"/' ./arch/arm64/configs/zumapro_defconfig
+          
+          # SUSFS Config
+          printf '%s\n' \
             "CONFIG_KSU=y" \
             "CONFIG_KSU_SUSFS=y" \
             "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" \
@@ -79,7 +84,6 @@ jobs:
 
       - name: Build and Package
         run: |
-          cd android_kernel_google_zumapro
           make zumapro_defconfig -j$(nproc --all)
           make -j$(nproc --all)
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/Image.lz4
