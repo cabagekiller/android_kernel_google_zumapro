@@ -101,7 +101,9 @@ jobs:
           
           export ARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
-          export KCFLAGS="-march=armv8.5-a+memtag -mcpu=cortex-a510 -O3"
+          
+          # Updated compiler flags
+          export KCFLAGS="-march=armv8.5-a+memtag -O3 --param=min-pagesize=0"
           
           make zumapro_defconfig
           make -j$(nproc --all) \
