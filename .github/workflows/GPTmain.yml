@@ -117,6 +117,8 @@ jobs:
             "CONFIG_TMPFS_XATTR=y" \
             >> ./arch/arm64/configs/zumapro_defconfig
 
+            sed -i 's|CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y|# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set|' oplus/build/fragments/oplus_sched.config
+
       - name: Build the Kernel
         run: |
           cd "$CONFIG"
