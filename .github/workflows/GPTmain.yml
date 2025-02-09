@@ -49,21 +49,21 @@ jobs:
       - name: Add KernelSU
         run: |
           cd "$CONFIG"
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
 
       - name: Apply SUSFS Patches
         run: |
           set -e  # Exit if any command fails
           cd "$CONFIG"
 
-          cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
-          cp ../susfs4ksu/kernel_patches/KernelSU/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next/
+          #cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+          #cp ../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next/
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
           cp ../susfs4ksu/kernel_patches/fs/* ./fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
 
           cd KernelSU-Next
-          patch -p1 < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+          #patch -p1 < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
 
           cd ..
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
@@ -117,8 +117,6 @@ jobs:
             "CONFIG_KSU_SUSFS_SUS_SU=n" \
             "CONFIG_TMPFS_XATTR=y" \
             >> ./arch/arm64/configs/zumapro_defconfig
-
-            sed -i 's|CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y|# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set|' oplus/build/fragments/oplus_sched.config
 
       - name: Build the Kernel
         run: |
