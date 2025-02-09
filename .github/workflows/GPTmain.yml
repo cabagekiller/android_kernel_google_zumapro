@@ -24,7 +24,11 @@ jobs:
           sudo apt update -y
           sudo apt install -y gcc-12-aarch64-linux-gnu binutils-aarch64-linux-gnu
           sudo apt install -y flex bison libssl-dev bc libelf-dev python3
-          sudo apt install -y llvm lld
+          sudo apt install -y llvm lld gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+          # Verify compiler installation
+          which aarch64-linux-gnu-gcc
+          aarch64-linux-gnu-gcc --version
 
       - name: Set CONFIG Environment Variable
         run: |
@@ -124,6 +128,8 @@ jobs:
 
           # Updated compiler flags
           export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0"
+
+          export PATH=/usr/bin:$PATH
 
           make zumapro_defconfig
           +make -j$(nproc --all)  # Fix jobserver issue
