@@ -1,4 +1,4 @@
-name: Build A15 Zuma Pro Kernel w/out hook
+name: Build A15 Zuma Pro Kernel
 
 on:
   workflow_dispatch:
@@ -81,7 +81,7 @@ jobs:
           cd "$CONFIG"
           # Apply additional patch
           cp ../kernel_patches/ksu_hooks.patch ./
-          #patch -p1 --fuzz=3 < ./ksu_hooks.patch
+          patch -p1 --fuzz=3 < ./ksu_hooks.patch
 
       - name: Apply Hide Stuff Patches
         run: |
