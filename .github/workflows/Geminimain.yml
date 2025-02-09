@@ -40,16 +40,16 @@ jobs:
           KSU_VERSION=$(git rev-list --count HEAD | awk '{print $1 + 10200}')
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
-          cd../.. # Return to the config directory
+          cd ../.. # Return to the config directory
 
           # Apply patches (all relative to the config directory)
-          cp../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch./KernelSU-Next/
-          cp../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch./
+          cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch./KernelSU-Next/
+          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch./
           cp -r../susfs4ksu/kernel_patches/fs/*./fs/
           cp -r../susfs4ksu/kernel_patches/include/linux/*./include/linux/
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           cd KernelSU-Next
-          cd.. # Return to the config directory
+          cd .. # Return to the config directory
 
           for patch in../kernel_patches/*.patch; do
             patch -p1 --fuzz=3 < "$patch" || true
