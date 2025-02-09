@@ -1,0 +1,144 @@
+name: Build A15 Zuma Pro Kernel GPT
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kernel-a15-zumapro-kernelsu-susfs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y gcc-12-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          sudo apt install -y flex bison libssl-dev bc libelf-dev python3
+          sudo apt install -y llvm lld
+
+      - name: Set CONFIG Environment Variable
+        run: |
+          CONFIG="android_kernel_google_zumapro"
+          echo "CONFIG=$CONFIG" >> $GITHUB_ENV
+
+      - name: Clone AnyKernel3 and Other Dependencies
+        run: |
+          ANYKERNEL_BRANCH="15.0.0-sultan-zumapro"
+          SUSFS_BRANCH="gki-android14-6.1"
+
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
+          git clone https://github.com/TheWildJames/kernel_patches.git
+          git clone https://github.com/kerneltoast/android_kernel_google_zumapro
+          rm -rf /common/android/abi_gki_protected_exports_*
+
+      - name: Add KernelSU
+        run: |
+          cd "$CONFIG"
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+
+      - name: Apply SUSFS Patches
+        run: |
+          set -e  # Exit if any command fails
+          cd "$CONFIG"
+
+          cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
+          cp ../susfs4ksu/kernel_patches/fs/* ./fs/
+          cp ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
+
+          cd KernelSU-Next
+          patch -p1 < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+
+          cd ..
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+
+      - name: Apply Kernel Patches
+        run: |
+          set -e
+          cd "$CONFIG"
+          cp ../kernel_patches/ksu_hooks.patch ./
+          cp ../kernel_patches/69_hide_stuff.patch ./
+          patch -p1 -F 3 < 69_hide_stuff.patch
+          patch -p1 --fuzz=3 < ./ksu_hooks.patch
+
+      - name: Apply KernelSU & SUSFS Fixes
+        run: |
+          set -e
+          cd "$CONFIG"
+          cp ../kernel_patches/sys.c_fix.patch ./
+          cp ../kernel_patches/mount.h_fix.patch ./
+          cp ../kernel_patches/sched.h_fix.patch ./
+          cp ../kernel_patches/user.h_fix.patch ./
+          
+          patch -p1 --fuzz=3 < sys.c_fix.patch
+          patch -p1 --fuzz=3 < mount.h_fix.patch
+          patch -p1 --fuzz=3 < sched.h_fix.patch
+          patch -p1 --fuzz=3 < user.h_fix.patch
+          
+          sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
+          sed -i "s/length of string: %u/length of string: %lu/g" ./fs/susfs.c
+
+      - name: Configure Kernel
+        run: |
+          cd "$CONFIG"
+          printf '%s\n' \
+            "CONFIG_KSU=y" \
+            "CONFIG_KSU_SUSFS=y" \
+            "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" \
+            "CONFIG_KSU_SUSFS_SUS_PATH=y" \
+            "CONFIG_KSU_SUSFS_SUS_MOUNT=y" \
+            "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" \
+            "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" \
+            "CONFIG_KSU_SUSFS_SUS_KSTAT=y" \
+            "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" \
+            "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" \
+            "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" \
+            "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" \
+            "CONFIG_KSU_SUSFS_ENABLE_LOG=y" \
+            "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" \
+            "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" \
+            "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" \
+            "CONFIG_KSU_SUSFS_SUS_SU=n" \
+            "CONFIG_TMPFS_XATTR=y" \
+            >> ./arch/arm64/configs/zumapro_defconfig
+
+      - name: Build the Kernel
+        run: |
+          cd "$CONFIG"
+
+          export ARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CC="aarch64-linux-gnu-gcc-12"
+          export LD="ld.lld"  # Use LLVM linker to fix LTO issues
+
+          # Updated compiler flags
+          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0"
+
+          make zumapro_defconfig
+          +make -j$(nproc --all)  # Fix jobserver issue
+
+      - name: Package Kernel
+        run: |
+          cd "$CONFIG"
+          cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
+          cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb
+          cd ../AnyKernel3
+          zip -r9 "../A15_Sultan_KernelSU_SUSFS_ZumaPro.zip" ./*
+
+      - name: Upload Kernel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-zumapro
+          path: |
+            *.zip
