@@ -45,8 +45,8 @@ jobs:
           # Apply patches (all relative to the config directory)
           cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
-          cp -r../susfs4ksu/kernel_patches/fs/* ./fs/
-          cp -r../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
+          cp -r ../susfs4ksu/kernel_patches/fs/* ./fs/
+          cp -r ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           cd KernelSU-Next
           cd .. # Return to the config directory
