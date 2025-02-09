@@ -45,24 +45,72 @@ jobs:
       - name: Add KernelSU
         run: |
           cd "$CONFIG"
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
           cd KernelSU-Next/kernel
           KSU_VERSION=$(expr $(git rev-list --count HEAD) "+" 10200)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
           cd ../..
 
-      - name: Apply Patches and Configuration
+      - name: Apply SUSFS Patches
         run: |
+          echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
           
-          # Apply SUSFS patches
+          echo "Applying SUSFS patches..."
+          
+          # Copy SUSFS patches
           cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
-          cp -r ../susfs4ksu/kernel_patches/fs/* ./fs/
-          cp -r ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
+          cp ../susfs4ksu/kernel_patches/fs/* ./fs/
+          cp ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
 
-          # Add SUSFS configuration
+          cd ./KernelSU-Next
+          
+          echo "Applying next SUSFS patches..."
+          cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
+          patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+          
+          # Change to common directory and apply SUSFS patch
+          cd ..
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+
+      - name: Apply KSU Hooks
+        run: |
+          echo "Changing to configuration directory: $CONFIG..."
+          cd "$CONFIG"
+          # Apply additional patch
+          cp ../kernel_patches/ksu_hooks.patch ./
+          patch -p1 --fuzz=3 < ./ksu_hooks.patch
+
+      - name: Apply Hide Stuff Patches
+        run: |
+          echo "Changing to configuration directory: $CONFIG..."
+          cd "$CONFIG"
+          # Apply additional patch
+          cp ../kernel_patches/69_hide_stuff.patch ./
+          patch -p1 -F 3 < 69_hide_stuff.patch
+
+      - name: Apply KernelSU & SUSFS SUltan Fixes
+        run: |
+          echo "Changing to configuration directory: $CONFIG..."
+          cd "$CONFIG"
+          # Apply additional patch
+          cp ../kernel_patches/sys.c_fix.patch ./
+          patch -p1 --fuzz=3 < ./sys.c_fix.patch
+
+          cp ../kernel_patches/mount.h_fix.patch ./
+          patch -p1 --fuzz=3 < ./mount.h_fix.patch
+          cp ../kernel_patches/sched.h_fix.patch ./
+          patch -p1 --fuzz=3 < ./sched.h_fix.patch
+          cp ../kernel_patches/user.h_fix.patch ./
+          patch -p1 --fuzz=3 < ./user.h_fix.patch
+
+          sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
+          sed -i "s/length of string: %u/length of string: %lu/g" ./fs/susfs.c
+
+
+           # Add SUSFS configuration
           printf '%s\n' \
             "CONFIG_KSU=y" \
             "CONFIG_KSU_SUSFS=y" \
@@ -84,16 +132,12 @@ jobs:
             "CONFIG_TMPFS_XATTR=y" \
             >> ./arch/arm64/configs/zumapro_defconfig
 
-          # Apply other patches
-          for patch in ../kernel_patches/*.patch; do
-            patch -p1 -F 3 < "$patch" || true
-          done
 
           # Add architecture flags
           echo "CONFIG_ARM64_VA_BITS_48=y" >> ./arch/arm64/configs/zumapro_defconfig
           echo "CONFIG_ARM64_AMU_EXTN=y" >> ./arch/arm64/configs/zumapro_defconfig
           sed -i '/CONFIG_LOCALVERSION=.*/d' ./arch/arm64/configs/zumapro_defconfig
-          echo 'CONFIG_LOCALVERSION="-Sultan-Cabbage"' >> ./arch/arm64/configs/zumapro_defconfig
+          echo 'CONFIG_LOCALVERSION="-Sultan-Cabage"' >> ./arch/arm64/configs/zumapro_defconfig
 
       - name: Build the Kernel
         run: |
