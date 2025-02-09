@@ -1,4 +1,4 @@
-name: Build A15 Zuma Pro Kernel
+name: Build A15 Zuma Pro Kernel w/out hook
 
 on:
   workflow_dispatch:
@@ -132,10 +132,6 @@ jobs:
             "CONFIG_TMPFS_XATTR=y" \
             >> ./arch/arm64/configs/zumapro_defconfig
 
-
-          # Add architecture flags
-          echo "CONFIG_ARM64_VA_BITS_48=y" >> ./arch/arm64/configs/zumapro_defconfig
-          echo "CONFIG_ARM64_AMU_EXTN=y" >> ./arch/arm64/configs/zumapro_defconfig
           sed -i '/CONFIG_LOCALVERSION=.*/d' ./arch/arm64/configs/zumapro_defconfig
           echo 'CONFIG_LOCALVERSION="-Sultan-Cabage"' >> ./arch/arm64/configs/zumapro_defconfig
 
