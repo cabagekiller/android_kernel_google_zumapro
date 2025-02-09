@@ -132,7 +132,7 @@ jobs:
           export PATH=/usr/bin:$PATH
 
           make zumapro_defconfig
-          +make -j$(nproc --all)  # Fix jobserver issue
+          make -j$(nproc --all)  # Fix jobserver issue
 
       - name: Package Kernel
         run: |
