@@ -30,6 +30,10 @@ jobs:
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
           echo "CONFIG set to: $CONFIG"
 
+      - name: Clone AnyKernel3 and Other Dependencies
+        run: |
+          git clone https://github.com/kerneltoast/android_kernel_google_zumapro  
+
       - name: Build the Kernel
         run: |
           cd "$CONFIG"
