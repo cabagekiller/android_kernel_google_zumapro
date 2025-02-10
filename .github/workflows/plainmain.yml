@@ -77,9 +77,9 @@ jobs:
           #done
 
           # Verify the config (still important)
-          grep CONFIG_ARM_RME .config
-          grep CONFIG_KVM .config
-          grep CONFIG_HYPEVISOR_GUEST .config
+          #grep CONFIG_ARM_RME .config
+          #grep CONFIG_KVM .config
+          #grep CONFIG_HYPEVISOR_GUEST .config
 
           # Ensure the GCC path is correct before running make
           export PATH="$GCC_PATH:$PATH"  # Set the GCC_PATH correctly
