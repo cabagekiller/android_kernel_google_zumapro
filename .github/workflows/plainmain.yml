@@ -40,23 +40,22 @@ jobs:
           cd "$CONFIG"
           
           # Robustly disable CONFIG_ARM_RME (and related options)
-          sed -i 's/^CONFIG_ARM_RME=y$/# CONFIG_ARM_RME=n/'./arch/arm64/configs/zumapro_defconfig  # Force disable RME
+          sed -i 's|^CONFIG_ARM_RME=y$|# CONFIG_ARM_RME=n|' ./arch/arm64/configs/zumapro_defconfig  # Force disable RME
 
           # Disable other potential culprits (if you're not using virtualization)
-          sed -i 's/^CONFIG_KVM=y$/# CONFIG_KVM=n/'./arch/arm64/configs/zumapro_defconfig      # Disable KVM
-          sed -i 's/^CONFIG_HYPEVISOR_GUEST=y$/# CONFIG_HYPEVISOR_GUEST=n/'./arch/arm64/configs/zumapro_defconfig # Disable Hypervisor Guest
+          sed -i 's|^CONFIG_KVM=y$|# CONFIG_KVM=n|' ./arch/arm64/configs/zumapro_defconfig      # Disable KVM
+          sed -i 's|^CONFIG_HYPEVISOR_GUEST=y$|# CONFIG_HYPEVISOR_GUEST=n|' ./arch/arm64/configs/zumapro_defconfig # Disable Hypervisor Guest
 
           # More aggressive disabling (if the above doesn't work)
-          grep -q "CONFIG_ARM_RME=y"./arch/arm64/configs/zumapro_defconfig && sed -i 's/CONFIG_ARM_RME=y/# CONFIG_ARM_RME=n/'./arch/arm64/configs/zumapro_defconfig
-          grep -q "CONFIG_KVM=y"./arch/arm64/configs/zumapro_defconfig && sed -i 's/CONFIG_KVM=y/# CONFIG_KVM=n/'./arch/arm64/configs/zumapro_defconfig
-          grep -q "CONFIG_HYPEVISOR_GUEST=y"./arch/arm64/configs/zumapro_defconfig && sed -i 's/CONFIG_HYPEVISOR_GUEST=y/# CONFIG_HYPEVISOR_GUEST=n/'./arch/arm64/configs/zumapro_defconfig
-
+          grep -q "CONFIG_ARM_RME=y" ./arch/arm64/configs/zumapro_defconfig && sed -i 's|CONFIG_ARM_RME=y|# CONFIG_ARM_RME=n|' ./arch/arm64/configs/zumapro_defconfig
+          grep -q "CONFIG_KVM=y" ./arch/arm64/configs/zumapro_defconfig && sed -i 's|CONFIG_KVM=y|# CONFIG_KVM=n|' ./arch/arm64/configs/zumapro_defconfig
+          grep -q "CONFIG_HYPEVISOR_GUEST=y" ./arch/arm64/configs/zumapro_defconfig && sed -i 's|CONFIG_HYPEVISOR_GUEST=y|# CONFIG_HYPEVISOR_GUEST=n|' ./arch/arm64/configs/zumapro_defconfig
 
           # Verify the config (important for debugging)
-          grep CONFIG_ARM_RME./arch/arm64/configs/zumapro_defconfig
-          grep CONFIG_KVM./arch/arm64/configs/zumapro_defconfig
-          grep CONFIG_HYPEVISOR_GUEST./arch/arm64/configs/zumapro_defconfig
-          
+          grep CONFIG_ARM_RME ./arch/arm64/configs/zumapro_defconfig
+          grep CONFIG_KVM ./arch/arm64/configs/zumapro_defconfig
+          grep CONFIG_HYPEVISOR_GUEST ./arch/arm64/configs/zumapro_defconfig
+
           export PATH="/usr/bin:$PATH"
           mkdir -p out
           make zumapro_defconfig
