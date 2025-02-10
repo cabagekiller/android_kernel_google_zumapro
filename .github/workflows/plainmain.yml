@@ -22,7 +22,7 @@ jobs:
       - name: Installing dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu-13
+          sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
           sudo apt install -y flex bison libssl-dev bc libelf-dev python3
 
       - name: Download and Extract GCC 14.2
