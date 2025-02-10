@@ -25,11 +25,31 @@ jobs:
           sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
           sudo apt install -y flex bison libssl-dev bc libelf-dev python3
 
+      - name: Download and Extract GCC 14.2
+        run: |
+          # Replace with the actual URL of the GCC 14.2 prebuilt for aarch64-linux-gnu
+          GCC_URL="https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz"  # <-- **IMPORTANT:  REPLACE THIS URL**
+          GCC_FILENAME="gcc-14.2.0.tar.xz"
+          GCC_EXTRACT_DIR="gcc-14.2"
+
+          wget "$GCC_URL" -O "$GCC_FILENAME"
+          mkdir "$GCC_EXTRACT_DIR"
+          tar -xf "$GCC_FILENAME" -C "$GCC_EXTRACT_DIR"
+
+          echo "GCC_PATH=$(pwd)/$GCC_EXTRACT_DIR/bin" >> $GITHUB_ENV
+          echo "GCC_TOOLCHAIN=$(pwd)/$GCC_EXTRACT_DIR" >> $GITHUB_ENV # Store for possible later usage
+
       - name: Set CONFIG Environment Variable
         run: |
           CONFIG="android_kernel_google_zumapro"
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
           echo "CONFIG set to: $CONFIG"
+
+          # Crucial: Use the downloaded GCC toolchain
+          echo "PATH=$GCC_PATH:$PATH" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV # Ensure the prefix is correct
+          export PATH=$GCC_PATH:$PATH
+          export CROSS_COMPILE=aarch64-linux-gnu-
 
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
