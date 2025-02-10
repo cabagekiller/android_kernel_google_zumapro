@@ -22,7 +22,7 @@ jobs:
       - name: Installing dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu-13
           sudo apt install -y flex bison libssl-dev bc libelf-dev python3
 
       - name: Download and Extract GCC 14.2
@@ -58,34 +58,25 @@ jobs:
       - name: Build the Kernel
         run: |
           cd "$CONFIG"
-          
-          # Create a config fragment (optional but recommended)
-          cat << EOF > zumapro_config_fragment.cfg
-          CONFIG_ARM_RME is not set
-          CONFIG_KVM is not set
-          CONFIG_HYPEVISOR_GUEST is not set
-          EOF
 
-          # Apply the config fragment (if you created one)
-          # If you don't have a config fragment, just use the zumapro_defconfig
-          # cat zumapro_config_fragment.cfg >> .config
-          make zumapro_defconfig
-
-          # Use a loop to robustly unset the config options
-          #for CONFIG_OPTION in CONFIG_ARM_RME CONFIG_KVM CONFIG_HYPEVISOR_GUEST; do
-           # scripts/kconfig/unset_config.sh "$CONFIG_OPTION" .config
-          #done
-
-          # Verify the config (still important)
-          #grep CONFIG_ARM_RME .config
-          #grep CONFIG_KVM .config
-          #grep CONFIG_HYPEVISOR_GUEST .config
-
-          # Ensure the GCC path is correct before running make
-          export PATH="$GCC_PATH:$PATH"  # Set the GCC_PATH correctly
+          printf '%s\n' \
+            "CONFIG_LTO_NONE=y" \
+            # ... keep existing configs ...
+            >> ./arch/arm64/configs/zumapro_defconfig
+    
+          export ARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
-
-          make -j$(nproc --all) Image.lz4 dtbs # Build with correct GCC PATH
+    
+          # Updated KCFLAGS with ARMv8.6 and disable LTO
+          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0"
+    
+          make zumapro_defconfig
+          make -j$(nproc --all) \
+            CC="aarch64-linux-gnu-gcc-13" \
+            LD="aarch64-linux-gnu-ld.bfd" \
+            AR="aarch64-linux-gnu-ar" \
+            NM="aarch64-linux-gnu-nm" \
+            STRIP="aarch64-linux-gnu-strip"
 
       - name: Package Artifacts
         run: |
