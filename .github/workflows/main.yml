@@ -140,18 +140,14 @@ jobs:
           cd "$CONFIG"
           
           export ARCH=arm64
-          export CROSS_COMPILE=aarch64-linux-gnu-
+
           
           # Updated compiler flags
-          export KCFLAGS="-march=armv8.5-a+memtag -O3 --param=min-pagesize=0"
+
           
           make zumapro_defconfig
           make -j$(nproc --all) \
-            CC="aarch64-linux-gnu-gcc-13" \
-            LD="aarch64-linux-gnu-ld.bfd" \
-            AR="aarch64-linux-gnu-ar" \
-            NM="aarch64-linux-gnu-nm" \
-            STRIP="aarch64-linux-gnu-strip"
+
 
       - name: Package Artifacts
         run: |
