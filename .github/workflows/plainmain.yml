@@ -1,0 +1,51 @@
+name: Build A15 Zuma Pro Kernel no SUSFS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kernel-a15-zumapro-kernelsu-susfs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Installing dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          sudo apt install -y flex bison libssl-dev bc libelf-dev python3
+      - name: Set CONFIG Environment Variable
+        run: |
+          CONFIG="android_kernel_google_zumapro"
+          echo "CONFIG=$CONFIG" >> $GITHUB_ENV
+          echo "CONFIG set to: $CONFIG"
+
+      - name: Build the Kernel
+        run: |
+          cd "$CONFIG"
+          
+          make zumapro_defconfig
+          make -j$(nproc --all) \
+      - name: Package Artifacts
+        run: |
+          cd "$CONFIG"
+          cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
+          cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb
+          cd ../AnyKernel3
+          zip -r9 "../A15_Sultan_KernelSU_SUSFS_ZumaPro.zip" ./*
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-zumapro
+          path: |
+            *.zip
