@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-kernel-a15-zumapro-kernelsu-susfs:
+  build-kernel-a15-zumapro:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,7 @@ jobs:
           sudo apt update -y
           sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
           sudo apt install -y flex bison libssl-dev bc libelf-dev python3
+
       - name: Set CONFIG Environment Variable
         run: |
           CONFIG="android_kernel_google_zumapro"
@@ -32,24 +33,28 @@ jobs:
 
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
-          git clone https://github.com/kerneltoast/android_kernel_google_zumapro  
+          git clone https://github.com/kerneltoast/android_kernel_google_zumapro
 
       - name: Build the Kernel
         run: |
           cd "$CONFIG"
-          
+          export PATH="/usr/bin:$PATH"
+          mkdir -p out
           make zumapro_defconfig
-          make -j$(nproc --all) \
+          make -j$(nproc --all)
+
       - name: Package Artifacts
         run: |
           cd "$CONFIG"
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
           cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb
           cd ../AnyKernel3
-          zip -r9 "../A15_Sultan_KernelSU_SUSFS_ZumaPro.zip" ./*
+          zip -r9 "../A15_Sultan_ZumaPro.zip" ./*
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kernel-zumapro
           path: |
             *.zip
+
