@@ -72,9 +72,9 @@ jobs:
           make zumapro_defconfig
 
           # Use a loop to robustly unset the config options
-          for CONFIG_OPTION in CONFIG_ARM_RME CONFIG_KVM CONFIG_HYPEVISOR_GUEST; do
-            scripts/kconfig/unset_config.sh "$CONFIG_OPTION" .config
-          done
+          #for CONFIG_OPTION in CONFIG_ARM_RME CONFIG_KVM CONFIG_HYPEVISOR_GUEST; do
+           # scripts/kconfig/unset_config.sh "$CONFIG_OPTION" .config
+          #done
 
           # Verify the config (still important)
           grep CONFIG_ARM_RME .config
