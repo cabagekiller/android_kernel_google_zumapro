@@ -193,28 +193,42 @@ jobs:
       - name: Package Artifacts
         run: |
           cd "$CONFIG"
-    
-          # Create ZIP filename with version/timestamp
-          ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}"
-          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
-    
-          # Copy files to AnyKernel3
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
           cp ./out/arch/arm64/boot/Image ../AnyKernel3/
-          cat ./out/google-devices/zumapro/dts/*.dtb > ../AnyKernel3/dtb
-    
-          # Create ZIP
+          cat ./out/google-devices/zumapro/dts/*.dtb  > ../AnyKernel3/dtb
           cd ../AnyKernel3
-          zip "../${ZIP_NAME}" ./*
+          ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}.zip"
+          zip "../${ZIP_NAME}" ./* # Correct way to zip the contents of the directory
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV  #Export for use later
+          echo "ZIP file created: ../${ZIP_NAME}"  # Confirm file creation
+          # List the contents of the directory where the zip *should* be
+          echo "Contents of the parent directory:"
+          ls -l ..
+          pwd
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-zumapro
+          path: |
+            ../${{ env.ZIP_NAME }} #Access it using env variable
+
       - name: Create Release
-        id: create_release
+        id: create_release # Assign an ID to the step
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}"
+          tag_name: "Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}" # Dynamic Tag
           release_name: "Cabage_SUSFS_Sultan_ZumaPro Release ${{ env.KSUVER }}"
           draft: false
+
+      - name: Debug Upload Release Asset
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Contents of parent directory"
+          ls -l ..
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
