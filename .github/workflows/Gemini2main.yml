@@ -206,7 +206,7 @@ jobs:
           ls -l
 
           ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_.zip"
-          zip -r9 "../${ZIP_NAME}" ./* # Correct way to zip the contents of the directory
+          zip -r9 "../${ZIP_NAME}" *
 
       - name: Create Release
         id: create_release
