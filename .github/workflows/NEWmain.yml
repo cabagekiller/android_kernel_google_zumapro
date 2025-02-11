@@ -164,7 +164,7 @@ jobs:
           cd "$CONFIG"
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
           cp ./out/arch/arm64/boot/Image ../AnyKernel3/
-          cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb
+          cat ./out/google-devices/zumapro/dts/*.dtb > ../AnyKernel3/dtb
           cd ../AnyKernel3
           zip -r9 "../Cabage_SUSFS_Sultan_ZumaPro.zip" ./*
       - name: Upload Artifacts
