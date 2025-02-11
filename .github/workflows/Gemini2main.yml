@@ -192,11 +192,11 @@ jobs:
           # Verify the existence of output files *before* copying
           echo "Checking output files..."
           ls -l ./out/arch/arm64/boot/Image.lz4 || echo "Image.lz4 not found"
-          ls -l ./out/arch/arm64/boot/Image || echo "Image not found"
+          #ls -l ./out/arch/arm64/boot/Image || echo "Image not found"
           ls -l ./out/google-devices/zumapro/dts/*.dtb || echo "*.dtb not found"
 
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
-          cp ./out/arch/arm64/boot/Image ../AnyKernel3/
+          #cp ./out/arch/arm64/boot/Image ../AnyKernel3/
           cat ./out/google-devices/zumapro/dts/*.dtb  > ../AnyKernel3/dtb
 
           cd ../AnyKernel3
@@ -206,7 +206,7 @@ jobs:
           ls -l
 
           ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_.zip"
-          zip -r9 "../${ZIP_NAME}" *
+          zip "../${ZIP_NAME}" *
 
       - name: Create Release
         id: create_release
