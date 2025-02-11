@@ -170,6 +170,7 @@ jobs:
           echo "CONFIG_LTO_NONE=y" >> ./arch/arm64/configs/zumapro_defconfig
           export ARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export KBUILD_CFLAGS="-Wall"
 
           # Make defconfig
           make zumapro_defconfig
