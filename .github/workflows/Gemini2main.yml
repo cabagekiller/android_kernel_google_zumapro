@@ -1,0 +1,202 @@
+name: Build A15 Zuma Pro Kernel SUSFS test Gemini
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release Tag (e.g., v1.0.0)'
+        required: true
+        type: string
+      release_name:
+        description: 'Release Name (e.g., Kernel Release v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a prerelease?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-kernel-a15-zumapro:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Install dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y flex bison libssl-dev bc libelf-dev python3 git wget
+
+      - name: Download and Extract GCC 14.2
+        run: |
+          # Replace with the actual URL of the GCC 14.2 prebuilt for aarch64-linux-gnu
+          GCC_URL="https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz"  # <-- **IMPORTANT:  REPLACE THIS URL**
+          GCC_FILENAME="gcc-14.2.0.tar.xz"
+          GCC_EXTRACT_DIR="gcc-14.2"
+          wget "$GCC_URL" -O "$GCC_FILENAME"
+          mkdir "$GCC_EXTRACT_DIR"
+          tar -xf "$GCC_FILENAME" -C "$GCC_EXTRACT_DIR"
+          echo "GCC_PATH=$(pwd)/$GCC_EXTRACT_DIR/bin" >> $GITHUB_ENV
+          echo "GCC_TOOLCHAIN=$(pwd)/$GCC_EXTRACT_DIR" >> $GITHUB_ENV # Store for possible later usage
+
+      - name: Set Environment Variables
+        run: |
+          echo "CONFIG=android_kernel_google_zumapro" >> $GITHUB_ENV
+          echo "ANYKERNEL_BRANCH=15.0.0-sultan-zumapro" >> $GITHUB_ENV
+          echo "SUSFS_BRANCH=gki-android14-6.1" >> $GITHUB_ENV
+
+          # Crucial: Use the downloaded GCC toolchain
+          echo "PATH=$GCC_PATH:$PATH" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV # Ensure the prefix is correct
+
+          # Define ARM architecture
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "KCFLAGS=-march=armv8.6-a -O3 --param=min-pagesize=0" >> $GITHUB_ENV  # Optimization and target architecture flags
+          echo "LOCALVERSION=-Sultan-Cabage" >> $GITHUB_ENV
+
+          export PATH=$GCC_PATH:$PATH
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export ARCH=arm64
+          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0"
+
+      - name: Clone Dependencies
+        run: |
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b "${{ env.ANYKERNEL_BRANCH }}"
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.SUSFS_BRANCH }}"
+          git clone https://github.com/TheWildJames/kernel_patches.git
+          git clone https://github.com/kerneltoast/android_kernel_google_zumapro "${{ env.CONFIG }}" # Clone directly into the config directory
+
+          rm -rf /common/android/abi_gki_protected_exports_*
+
+      - name: Add KernelSU
+        run: |
+          cd "${{ env.CONFIG }}"
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          cd KernelSU-Next/kernel
+          KSU_VERSION=$(( $(git rev-list --count HEAD) + 10200 ))
+          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV # Export KSUVER for later use
+          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
+          cd ../..
+
+      - name: Apply Patches
+        run: |
+          cd "${{ env.CONFIG }}"
+
+          #Copy SUSFS patches
+          cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
+          cp ../susfs4ksu/kernel_patches/fs/* ./fs/
+          cp ../susfs4ksu/kernel_patches/include/linux/* ./include/linux/
+          cd ./KernelSU-Next
+
+          echo "Applying SUSFS patches..."
+          cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
+          patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+
+          #Change to common directory and apply SUSFS patch
+          cd ..
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+
+          # Apply KSU Hooks, Hide Stuff, SUSFS Sultan Fixes
+          cp ../kernel_patches/ksu_hooks.patch ./
+          patch -p1 --fuzz=3 < ./ksu_hooks.patch || true
+
+          cp ../kernel_patches/69_hide_stuff.patch ./
+          patch -p1 -F 3 < ./69_hide_stuff.patch || true
+
+          cp ../kernel_patches/sys.c_fix.patch ./
+          patch -p1 --fuzz=3 < ./sys.c_fix.patch || true
+          cp ../kernel_patches/mount.h_fix.patch ./
+          patch -p1 --fuzz=3 < ./mount.h_fix.patch || true
+          cp ../kernel_patches/sched.h_fix.patch ./
+          patch -p1 --fuzz=3 < ./sched.h_fix.patch || true
+          cp ../kernel_patches/user.h_fix.patch ./
+          patch -p1 --fuzz=3 < ./user.h_fix.patch || true
+
+          # Fixes in SUSFS File
+          sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
+          sed -i "s/length of string: %u/length of string: %lu/g" ./fs/susfs.c
+
+          # Add SUSFS configuration options to defconfig
+          cat <<EOF >> ./arch/arm64/configs/zumapro_defconfig
+          CONFIG_KSU=y
+          CONFIG_KSU_SUSFS=y
+          CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y
+          CONFIG_KSU_SUSFS_SUS_PATH=y
+          CONFIG_KSU_SUSFS_SUS_MOUNT=y
+          CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y
+          CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y
+          CONFIG_KSU_SUSFS_SUS_KSTAT=y
+          CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y
+          CONFIG_KSU_SUSFS_TRY_UMOUNT=y
+          CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y
+          CONFIG_KSU_SUSFS_SPOOF_UNAME=y
+          CONFIG_KSU_SUSFS_ENABLE_LOG=y
+          CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y
+          CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
+          CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
+          CONFIG_KSU_SUSFS_SUS_SU=n
+          CONFIG_TMPFS_XATTR=y
+          EOF
+
+          # Set local version for kernel identification
+          sed -i '/CONFIG_LOCALVERSION=.*/d' ./arch/arm64/configs/zumapro_defconfig
+          echo "CONFIG_LOCALVERSION=\"${{ env.LOCALVERSION }}\"" >> ./arch/arm64/configs/zumapro_defconfig
+
+      - name: Build the Kernel
+        run: |
+          cd "${{ env.CONFIG }}"
+
+          # Add LTO_NONE and any other config options
+          echo "CONFIG_LTO_NONE=y" >> ./arch/arm64/configs/zumapro_defconfig
+
+          # Make defconfig
+          make zumapro_defconfig
+
+          # Build the kernel with specified compiler and flags
+          make -j$(nproc --all) \
+            CC="aarch64-linux-gnu-gcc" \
+            LD="aarch64-linux-gnu-ld.bfd" \
+            AR="aarch64-linux-gnu-ar" \
+            NM="aarch64-linux-gnu-nm" \
+            STRIP="aarch64-linux-gnu-strip" \
+            KCFLAGS="${{ env.KCFLAGS }}"
+
+      - name: Package Artifacts
+        run: |
+          cd "${{ env.CONFIG }}"
+          cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
+          cp ./out/arch/arm64/boot/Image ../AnyKernel3/
+          # cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb # disabled dtb compilation - is this correct?
+          cd ../AnyKernel3
+          zip -r9 "../Cabage_SUSFS_Sultan_ZumaPro.zip" ./*
+
+      - name: Create Release and Upload Artifacts
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          release_name: ${{ github.event.inputs.release_name }}
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step
+          asset_path: ./AnyKernel3/A15_Sultan_ZumaPro.zip
+          asset_name: Cabage_SUSFS_Sultan_ZumaPro.zip
+          asset_content_type: application/zip
