@@ -221,7 +221,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ env.ZIP_NAME }}
-          asset_name: ${{ env.ZIP_NAME }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # Use the output from create_release
+          asset_path: ../${{ env.ZIP_NAME }} # Point to the created zip
+          asset_name: ${{ env.ZIP_NAME }} #use the filename
           asset_content_type: application/zip
