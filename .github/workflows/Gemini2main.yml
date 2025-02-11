@@ -124,6 +124,9 @@ jobs:
           patch -p1 --fuzz=3 < ./sched.h_fix.patch || true
           cp ../kernel_patches/user.h_fix.patch ./
           patch -p1 --fuzz=3 < ./user.h_fix.patch || true
+           git add -A && git commit -a -m "BUILD Kernel" || true
+           cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel" || true
+           cd ..
 
           # Fixes in SUSFS File
           sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
