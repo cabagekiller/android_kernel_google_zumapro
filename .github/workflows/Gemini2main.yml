@@ -2,6 +2,8 @@ name: Build A15 Zuma Pro Kernel SUSFS test Gemini
 
 on:
   workflow_dispatch:
+  release:
+    types: [published]
     inputs:
       release_tag:
         description: 'Release Tag (e.g., v1.0.0)'
@@ -20,6 +22,8 @@ on:
 jobs:
   build-kernel-a15-zumapro:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Maximize build space
@@ -215,6 +219,8 @@ jobs:
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./${{ env.ZIP_NAME }}
