@@ -240,7 +240,7 @@ static int vfs_statx(int dfd, struct filename *filename, int flags,
 	      struct kstat *stat, u32 request_mask)
 
    #ifdef CONFIG_KSU
-	ksu_handle_stat(&dfd, &filename, &flags);
+	ksu_handle_stat(&dfd, &filename->name, &flags);
    #endif
 {
 	struct path path;
