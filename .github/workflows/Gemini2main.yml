@@ -181,7 +181,7 @@ jobs:
           cd "${{ env.CONFIG }}"
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
           cp ./out/arch/arm64/boot/Image ../AnyKernel3/
-          # cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb # disabled dtb compilation - is this correct?
+          cat ./out/google-modules/soc/gs/arch/arm64/boot/dts/google/*.dtb > ../AnyKernel3/dtb # disabled dtb compilation - is this correct?
           cd ../AnyKernel3
           zip -r9 "../Cabage_SUSFS_Sultan_ZumaPro.zip" ./*
 
@@ -200,6 +200,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step
-          asset_path: ./AnyKernel3/A15_Sultan_ZumaPro.zip
+          asset_path: ./AnyKernel3/Cabage_SUSFS_Sultan_ZumaPro.zip
           asset_name: Cabage_SUSFS_Sultan_ZumaPro.zip
           asset_content_type: application/zip
