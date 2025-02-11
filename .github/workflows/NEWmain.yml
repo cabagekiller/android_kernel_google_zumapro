@@ -117,8 +117,7 @@ jobs:
           cp ../kernel_patches/user.h_fix.patch ./
           patch -p1 --fuzz=3 < ./user.h_fix.patch
            git add -A && git commit -a -m "BUILD Kernel"
-           cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel"
-           cd ..
+           git rm --cached KernelSU-Next
           sed -i "s/poofed_size: '%u'/poofed_size: '%llu'/g" ./fs/susfs.c
           sed -i "s/length of string: %u/length of string: %lu/g" ./fs/susfs.c
            # Add SUSFS configuration
