@@ -203,17 +203,21 @@ jobs:
           echo "ZIP file created: ../${ZIP_NAME}"  # Confirm file creation
           echo "Contents of the parent directory:"
           ls -l ..
-          pwd #this is now AnyKernel3 Directory
+          pwd
 
-      - name: Get Workspace Directory
-        id: workspace
-        run: echo "::set-output name=path::$(pwd)" # Get current working directory
+      - name: Resolve Path
+        id: resolve_path
+        run: |
+          ZIP_PATH="../${{ env.ZIP_NAME }}"
+          RESOLVED_PATH=$(realpath "$ZIP_PATH")
+          echo "Resolved path: $RESOLVED_PATH"
+          echo "::set-output name=resolved_path::$RESOLVED_PATH"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: kernel-zumapro
-          path: ${{ steps.workspace.outputs.path }}/../${{ env.ZIP_NAME }} # path from workspace root to file
+          path: ${{ steps.resolve_path.outputs.resolved_path }}
           if-no-files-found: warn
           compression-level: 6
           overwrite: false
@@ -222,7 +226,7 @@ jobs:
       - name: Debug Upload Release Asset
         run: |
           echo "Current working directory:"
-          pwd #This is root directory!
+          pwd
           echo "Contents of parent directory"
           ls -l ..
 
