@@ -196,6 +196,7 @@ jobs:
           zip -r9 "../Cabage_SUSFS_Sultan_ZumaPro.zip" ./*
 
       - name: Create Release and Upload Artifacts
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
