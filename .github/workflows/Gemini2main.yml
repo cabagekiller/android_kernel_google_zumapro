@@ -208,7 +208,7 @@ jobs:
       - name: Resolve Path
         id: resolve_path
         run: |
-          ZIP_PATH="../${{ env.ZIP_NAME }}"
+          ZIP_PATH="${{ env.ZIP_NAME }}"
           RESOLVED_PATH=$(realpath "$ZIP_PATH")
           echo "Resolved path: $RESOLVED_PATH"
           echo "::set-output name=resolved_path::$RESOLVED_PATH"
@@ -223,11 +223,11 @@ jobs:
           overwrite: false
           include-hidden-files: false
 
-      - name: Debug Upload Release Asset
+      - name: Debug Upload Release Asset Path
         run: |
           echo "Current working directory:"
           pwd
-          echo "Contents of parent directory"
+          echo "Contents of parent directory:"
           ls -l ..
 
       - name: Create Release
@@ -245,7 +245,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # Use the output from create_release
-          asset_path: ../${{ env.ZIP_NAME }} # Point to the created zip
-          asset_name: ${{ env.ZIP_NAME }} #use the filename
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ZIP_NAME }}
+          asset_name: ${{ env.ZIP_NAME }}
           asset_content_type: application/zip
