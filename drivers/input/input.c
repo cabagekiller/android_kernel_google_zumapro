@@ -38,6 +38,7 @@ static DEFINE_IDA(input_ida);
 static LIST_HEAD(input_dev_list);
 static LIST_HEAD(input_handler_list);
 
+extern bool ksu_input_hook __read_mostly;
 extern bool ksu_input_hook; 
 extern void ksu_handle_input_handle_event(unsigned int* type, unsigned int* code, int* value);
 
@@ -348,7 +349,6 @@ static int input_get_disposition(struct input_dev *dev,
 }
 
 #ifdef CONFIG_KSU
-extern bool ksu_input_hook __read_mostly;
 extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
 #endif
 
