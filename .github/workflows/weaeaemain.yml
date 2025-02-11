@@ -102,7 +102,7 @@ jobs:
           cd "$CONFIG"
           # Apply additional patch
           cp ../kernel_patches/ksu_hooks.patch ./
-          patch -p1 < ./ksu_hooks.patch
+          patch -p1 --FUZZ 3 < ./ksu_hooks.patch
           if [ $? -ne 0 ]; then
             echo "ERROR: Failed to apply ksu_hooks.patch!"
             cat ksu_hooks.patch # print the patch for review
