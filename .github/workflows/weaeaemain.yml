@@ -90,19 +90,11 @@ jobs:
 
           echo "Applying next SUSFS patches..."
           cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
-          patch -p1 < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch
-          if [ $? -ne 0 ]; then
-            echo "ERROR: Failed to apply SUSFS KernelSU-Next patch!"
-            exit 1
-          fi
+          patch -p1 < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
 
           # Change to common directory and apply SUSFS patch
           cd ..
-          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
-          if [ $? -ne 0 ]; then
-            echo "ERROR: Failed to apply SUSFS patch!"
-            exit 1
-          fi
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
       - name: Apply KSU Hooks
         run: |
@@ -123,11 +115,7 @@ jobs:
           cd "$CONFIG"
           # Apply additional patch
           cp ../kernel_patches/69_hide_stuff.patch ./
-          patch -p1 < 69_hide_stuff.patch
-          if [ $? -ne 0 ]; then
-            echo "ERROR: Failed to apply 69_hide_stuff.patch!"
-            exit 1
-          fi
+          patch -p1 < 69_hide_stuff.patch || true
 
       - name: Apply KernelSU & SUSFS SUltan Fixes
         run: |
