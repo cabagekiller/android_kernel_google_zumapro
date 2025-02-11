@@ -188,26 +188,20 @@ jobs:
 
       - name: Package Artifacts
         run: |
-          cd "${{ env.CONFIG }}"
-          # Verify the existence of output files *before* copying
-          echo "Checking output files..."
-          ls -l ./out/arch/arm64/boot/Image.lz4 || echo "Image.lz4 not found"
-          #ls -l ./out/arch/arm64/boot/Image || echo "Image not found"
-          ls -l ./out/google-devices/zumapro/dts/*.dtb || echo "*.dtb not found"
-
+          cd "$CONFIG"
+    
+          # Create ZIP filename with version/timestamp
+          ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${KSUVER}-$(date +'%Y%m%d').zip"
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+    
+          # Copy files to AnyKernel3
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
-          #cp ./out/arch/arm64/boot/Image ../AnyKernel3/
-          cat ./out/google-devices/zumapro/dts/*.dtb  > ../AnyKernel3/dtb
-
+          cp ./out/arch/arm64/boot/Image ../AnyKernel3/
+          cat ./out/google-devices/zumapro/dts/*.dtb > ../AnyKernel3/dtb
+    
+          # Create ZIP
           cd ../AnyKernel3
-
-          # List the contents of AnyKernel3 to verify files were copied
-          echo "Contents of AnyKernel3 directory:"
-          ls -l
-
-          ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_.zip"
-          zip "../${ZIP_NAME}" *
-
+          zip "../${ZIP_NAME}" ./*
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -220,11 +214,9 @@ jobs:
           prerelease: ${{ github.event.inputs.prerelease }}
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${ZIP_NAME}
-          asset_name: ${ZIP_NAME}
-          asset_content_type: application/zip
+  uses: actions/upload-release-asset@v2  # Use v2 instead of deprecated v1
+  with:
+    upload_url: ${{ github.event.release.upload_url }}
+    asset_path: ./${{ env.ZIP_NAME }}  # Path now includes the actual filename
+    asset_name: ${{ env.ZIP_NAME }}
+    asset_content_type: application/zip
