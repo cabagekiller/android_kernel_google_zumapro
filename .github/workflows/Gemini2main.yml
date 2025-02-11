@@ -198,20 +198,33 @@ jobs:
           cat ./out/google-devices/zumapro/dts/*.dtb  > ../AnyKernel3/dtb
           cd ../AnyKernel3
           ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}.zip"
-          zip "../${ZIP_NAME}" ./* # Correct way to zip the contents of the directory
+          zip -r9 "../${ZIP_NAME}" ./* # Correct way to zip the contents of the directory
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV  #Export for use later
           echo "ZIP file created: ../${ZIP_NAME}"  # Confirm file creation
-          # List the contents of the directory where the zip *should* be
           echo "Contents of the parent directory:"
           ls -l ..
-          pwd
+          pwd #this is now AnyKernel3 Directory
 
-      - name: Upload Artifacts
+      - name: Get Workspace Directory
+        id: workspace
+        run: echo "::set-output name=path::$(pwd)" # Get current working directory
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: kernel-zumapro
-          path: |
-            ../${{ env.ZIP_NAME }} #Access it using env variable
+          path: ${{ steps.workspace.outputs.path }}/../${{ env.ZIP_NAME }} # path from workspace root to file
+          if-no-files-found: warn
+          compression-level: 6
+          overwrite: false
+          include-hidden-files: false
+
+      - name: Debug Upload Release Asset
+        run: |
+          echo "Current working directory:"
+          pwd #This is root directory!
+          echo "Contents of parent directory"
+          ls -l ..
 
       - name: Create Release
         id: create_release # Assign an ID to the step
@@ -222,13 +235,6 @@ jobs:
           tag_name: "Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}" # Dynamic Tag
           release_name: "Cabage_SUSFS_Sultan_ZumaPro Release ${{ env.KSUVER }}"
           draft: false
-
-      - name: Debug Upload Release Asset
-        run: |
-          echo "Current working directory:"
-          pwd
-          echo "Contents of parent directory"
-          ls -l ..
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
