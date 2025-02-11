@@ -349,7 +349,7 @@ static int input_get_disposition(struct input_dev *dev,
 }
 
 #ifdef CONFIG_KSU
-extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
+extern void ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
 #endif
 
 static void input_event_dispose(struct input_dev *dev, int disposition,
