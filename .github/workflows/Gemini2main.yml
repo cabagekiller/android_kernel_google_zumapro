@@ -36,7 +36,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y flex bison libssl-dev bc libelf-dev python3 git wget
+          sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          sudo apt install -y flex bison libssl-dev bc libelf-dev python3
 
       - name: Download and Extract GCC 14.2
         run: |
@@ -160,6 +161,8 @@ jobs:
 
           # Add LTO_NONE and any other config options
           echo "CONFIG_LTO_NONE=y" >> ./arch/arm64/configs/zumapro_defconfig
+          export ARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
 
           # Make defconfig
           make zumapro_defconfig
