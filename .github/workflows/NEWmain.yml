@@ -57,7 +57,7 @@ jobs:
           git clone https://github.com/TheWildJames/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
           git clone https://github.com/TheWildJames/kernel_patches.git
-          git clone https://github.com/kerneltoast/android_kernel_google_zumapro
+          git clone https://github.com/cabagekiller/android_kernel_google_zumapro
           rm -rf /common/android/abi_gki_protected_exports_*
       - name: Add KernelSU
         run: |
@@ -155,7 +155,7 @@ jobs:
           export CROSS_COMPILE=aarch64-linux-gnu-
     
           # Updated KCFLAGS with ARMv8.6 and disable LTO
-          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0 -Wno-error=incompatible-pointer-types -Werror=implicit-function-declaration -Werror"
+          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0"
     
           make zumapro_defconfig
           make -j$(nproc --all) \
