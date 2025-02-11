@@ -217,6 +217,10 @@ int getname_statx_lookup_flags(int flags)
 	return lookup_flags;
 }
 
+#ifdef CONFIG_KSU
+extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
+#endif
+
 /**
  * vfs_statx - Get basic and extra attributes by filename
  * @dfd: A file descriptor representing the base dir for a relative filename
@@ -234,6 +238,10 @@ int getname_statx_lookup_flags(int flags)
  */
 static int vfs_statx(int dfd, struct filename *filename, int flags,
 	      struct kstat *stat, u32 request_mask)
+
+   #ifdef CONFIG_KSU
+	ksu_handle_stat(&dfd, &filename, &flags);
+   #endif
 {
 	struct path path;
 	unsigned int lookup_flags = getname_statx_lookup_flags(flags);
