@@ -195,7 +195,7 @@ jobs:
           cd "$CONFIG"
     
           # Create ZIP filename with version/timestamp
-          ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${KSUVER}-$(date +'%Y%m%d').zip"
+          ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}"
           echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
     
           # Copy files to AnyKernel3
@@ -212,10 +212,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.release_tag }}
-          release_name: ${{ github.event.inputs.release_name }}
+          tag_name: "Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}"
+          release_name: "Cabage_SUSFS_Sultan_ZumaPro Release ${{ env.KSUVER }}"
           draft: false
-          prerelease: ${{ github.event.inputs.prerelease }}
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
