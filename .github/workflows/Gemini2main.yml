@@ -39,6 +39,11 @@ jobs:
           sudo apt install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
           sudo apt install -y flex bison libssl-dev bc libelf-dev python3
 
+      - name: Initialize Git Configuration
+        run: |
+          git config --global user.name "build"
+          git config --global user.email "3436378798@qq.com"
+
       - name: Download and Extract GCC 14.2
         run: |
           # Replace with the actual URL of the GCC 14.2 prebuilt for aarch64-linux-gnu
