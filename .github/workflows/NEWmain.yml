@@ -155,7 +155,7 @@ jobs:
           export CROSS_COMPILE=aarch64-linux-gnu-
     
           # Updated KCFLAGS with ARMv8.6 and disable LTO
-          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0"
+          export KCFLAGS="-march=armv8.6-a -O3 --param=min-pagesize=0 -Wno-error=incompatible-pointer-types"
     
           make zumapro_defconfig
           make -j$(nproc --all) \
