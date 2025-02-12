@@ -27,7 +27,7 @@
 
 #include "internal.h"
 #include "mount.h"
-
+extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
 #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
 extern void susfs_sus_ino_for_generic_fillattr(unsigned long ino, struct kstat *stat);
 #endif
