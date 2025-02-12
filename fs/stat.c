@@ -246,9 +246,6 @@ static int vfs_statx(int dfd, struct filename *filename, int flags,
 	struct path path;
 	unsigned int lookup_flags = getname_statx_lookup_flags(flags);
 	int error;
-#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-	struct mount *mnt;
-#endif
 
 	if (flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT | AT_EMPTY_PATH |
 		      AT_STATX_SYNC_TYPE))
