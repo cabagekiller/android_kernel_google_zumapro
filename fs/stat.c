@@ -18,8 +18,8 @@
 #include <linux/syscalls.h>
 #include <linux/pagemap.h>
 #include <linux/compat.h>
-#include <include/ksu_hook.h>
 #if defined(CONFIG_KSU_SUSFS_SUS_KSTAT) || defined(CONFIG_KSU_SUSFS_SUS_MOUNT)
+#include <include/ksu_hook.h>
 #include <linux/susfs_def.h>
 #endif
 #include <linux/uaccess.h>
