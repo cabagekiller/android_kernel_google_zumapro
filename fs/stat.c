@@ -238,15 +238,17 @@ extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *fla
 static int vfs_statx(int dfd, struct filename *filename, int flags,
 	      struct kstat *stat, u32 request_mask)
 
+
+{
    #ifdef CONFIG_KSU
 	ksu_handle_stat(&dfd, &filename->name, &flags);
    #endif
-{
 	struct path path;
 	unsigned int lookup_flags = getname_statx_lookup_flags(flags);
 	int error;
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 	struct mount *mnt;
+	(void)mnt;
 #endif
 
 	if (flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT | AT_EMPTY_PATH |
