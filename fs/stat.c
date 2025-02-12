@@ -247,8 +247,7 @@ static int vfs_statx(int dfd, struct filename *filename, int flags,
 	unsigned int lookup_flags = getname_statx_lookup_flags(flags);
 	int error;
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-	struct mount *mnt;
-	(void)mnt;
+    struct mount *mnt __maybe_unused;
 #endif
 
 	if (flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT | AT_EMPTY_PATH |
@@ -305,8 +304,9 @@ int vfs_fstatat(int dfd, const char __user *filename,
 	int ret;
 	int statx_flags = flags | AT_NO_AUTOMOUNT;
 	struct filename *name;
+	
 
-#ifdef CONFIG_KSU_SUSFS_SUS_SU
+  #ifdef CONFIG_KSU_SUSFS_SUS_SU
 	if (susfs_is_sus_su_hooks_enabled) {
 		name = susfs_ksu_handle_stat(&dfd, &filename, &statx_flags);
 		goto orig_flow;
