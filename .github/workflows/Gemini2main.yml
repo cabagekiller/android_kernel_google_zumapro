@@ -218,7 +218,7 @@ jobs:
         run: |
           cd "$CONFIG"
           cp ./out/arch/arm64/boot/Image.lz4 ../AnyKernel3/
-          cp ./out/arch/arm64/boot/Image ../AnyKernel3/
+          #cp ./out/arch/arm64/boot/Image ../AnyKernel3/
           cat ./out/google-devices/zumapro/dts/*.dtb  > ../AnyKernel3/dtb
           cd ../AnyKernel3
           ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}.zip"
