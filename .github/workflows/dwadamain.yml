@@ -205,9 +205,9 @@ jobs:
 
       - name: Clean Build Directory
         run: |
-          cd "${{ env.CONFIG }}"
-          make mrproper
-          make zumapro_defconfig
+          #cd "${{ env.CONFIG }}"
+          #make mrproper
+          #make zumapro_defconfig
       - name: Build the Kernel
         run: |
           cd "${{ env.CONFIG }}"
