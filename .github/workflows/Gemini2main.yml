@@ -243,7 +243,7 @@ jobs:
           name: kernel-zumapro
           path: ${{ steps.resolve_path.outputs.resolved_path }}
           if-no-files-found: warn
-          compression-level: 6
+          compression-level: 1
           overwrite: false
           include-hidden-files: false
 
