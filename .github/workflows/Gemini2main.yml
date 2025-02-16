@@ -222,7 +222,7 @@ jobs:
           cat ./out/google-devices/zumapro/dts/*.dtb  > ../AnyKernel3/dtb
           cd ../AnyKernel3
           ZIP_NAME="Cabage_SUSFS_Sultan_ZumaPro_${{ env.KSUVER }}-${{ github.run_id }}.zip"
-          zip "../${ZIP_NAME}" ./* # Correct way to zip the contents of the directory
+          zip -r9 "../${ZIP_NAME}" ./* # Correct way to zip the contents of the directory
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV  #Export for use later
           echo "ZIP file created: ../${ZIP_NAME}"  # Confirm file creation
           echo "Contents of the parent directory:"
