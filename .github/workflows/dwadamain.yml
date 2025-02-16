@@ -194,6 +194,20 @@ jobs:
           # Set local version for kernel identification
           sed -i '/CONFIG_LOCALVERSION=.*/d' ./arch/arm64/configs/zumapro_defconfig
           echo "CONFIG_LOCALVERSION=\"${{ env.LOCALVERSION }}\"" >> ./arch/arm64/configs/zumapro_defconfig
+
+      - name: Verify Defconfig
+        run: |
+          cd "${{ env.CONFIG }}"
+          if ! grep -q "CONFIG_MODULES=y" ./arch/arm64/configs/zumapro_defconfig; then
+            echo "ERROR: CONFIG_MODULES is not enabled in zumapro_defconfig!"
+            exit 1
+          fi
+
+      - name: Clean Build Directory
+        run: |
+          cd "${{ env.CONFIG }}"
+          make mrproper
+          make zumapro_defconfig
       - name: Build the Kernel
         run: |
           cd "${{ env.CONFIG }}"
@@ -213,10 +227,15 @@ jobs:
           # Build device tree binaries
           make dtbs -j$(nproc --all)
 
-          # Install modules
-          make modules_install INSTALL_MOD_PATH=modules_out
-          mkdir -p ../AnyKernel3/modules
-          find modules_out/ -name "*.ko" -exec cp {} ../AnyKernel3/modules/ \;
+          # Install modules (only if CONFIG_MODULES is enabled)
+          if grep -q "CONFIG_MODULES=y" .config; then
+            make modules_install INSTALL_MOD_PATH=modules_out
+            mkdir -p ../AnyKernel3/modules
+            find modules_out/ -name "*.ko" -exec cp {} ../AnyKernel3/modules/ \;
+          else
+            echo "Modules are disabled in kernel config, skipping modules_install"
+            exit 1
+          fi
 
       - name: Package Artifacts
         run: |
