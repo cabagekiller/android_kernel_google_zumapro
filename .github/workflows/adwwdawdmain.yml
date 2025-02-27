@@ -90,7 +90,7 @@ jobs:
           cp ../kernel_patches/new_hooks.patch ./
           patch -p1 --fuzz=3 < ./new_hooks.patch
           cp ../kernel_patches/ksu_input_hook_fix.patch ./
-          patch -p1 --fuzz=3 < ./ksu_input_hook_fix.patch
+          #patch -p1 --fuzz=3 < ./ksu_input_hook_fix.patch
 
       - name: Apply Hide Stuff Patches
         run: |
