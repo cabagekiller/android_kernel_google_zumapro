@@ -153,7 +153,7 @@ jobs:
           echo "CONFIG_IP6_NF_TARGET_HL=y" >> ./arch/arm64/configs/gki_defconfig
           echo "CONFIG_IP6_NF_MATCH_HL=y" >> ./arch/arm64/configs/gki_defconfig
           # Remove defconfig check
-          sed -i '2s/check_defconfig//' ./common/build.config.gki
+          sed -i '2s/check_defconfig//' ./build.config.gki
 
       - name: Run sed and perl Commands
         run: |
