@@ -111,17 +111,17 @@ jobs:
           cd ./KernelSU-Next
 
           echo "Applying SUSFS patches..."
-          cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
-          patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+          cp ../../kernel_patches/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
+          patch -p1 --forward < 0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch || true
 
           #Change to common directory and apply SUSFS patch
           cd ..
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
           # Apply KSU Hooks, Hide Stuff, SUSFS Sultan Fixes
-          cp ../kernel_patches/ksu_hooks.patch ./
-          #patch -p1 --fuzz=3 < ./ksu_hooks.patch || true
-
+          cp ../kernel_patches/new_hooks.patch ./
+          patch -p1 --fuzz=3 < ./new_hooks.patch
+          
           cp ../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < ./69_hide_stuff.patch || true
 
@@ -159,6 +159,7 @@ jobs:
           CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
           CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
           CONFIG_KSU_SUSFS_SUS_SU=n
+          CONFIG_KSU_WITH_KPROBES=n
           CONFIG_TMPFS_XATTR=y
           EOF
 
@@ -180,10 +181,8 @@ jobs:
           CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
           CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
           CONFIG_KSU_SUSFS_SUS_SU=n
+          CONFIG_KSU_WITH_KPROBES=n
           CONFIG_TMPFS_XATTR=y
-          CONFIG_KPROBES=y
-          CONFIG_HAVE_KPROBES=y
-          CONFIG_KPROBE_EVENTS=y
           EOF
 
           # Set local version for kernel identification
