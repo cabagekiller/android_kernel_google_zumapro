@@ -84,15 +84,15 @@ jobs:
         run: |
           git clone https://github.com/TheWildJames/AnyKernel3.git -b "${{ env.ANYKERNEL_BRANCH }}"
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.SUSFS_BRANCH }}"
-          git clone https://github.com/TheWildJames/kernel_patches.git
-          git clone https://github.com/cabagekiller/android_kernel_google_zumapro "${{ env.CONFIG }}" # Clone directly into the config directory
+          git clone https://github.com/cabagekiller/kernel_patches.git
+          git clone https://github.com/kerneltoast/android_kernel_google_zumapro "${{ env.CONFIG }}" # Clone directly into the config directory
 
           rm -rf /common/android/abi_gki_protected_exports_*
 
       - name: Add KernelSU
         run: |
           cd "${{ env.CONFIG }}"
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
           cd KernelSU-Next/kernel
           KSU_VERSION=$(( $(git rev-list --count HEAD) + 10200 ))
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV # Export KSUVER for later use
@@ -111,8 +111,8 @@ jobs:
           cd ./KernelSU-Next
 
           echo "Applying SUSFS patches..."
-          cp ../../kernel_patches/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
-          patch -p1 --forward < 0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch || true
+          #cp ../../kernel_patches/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
+          #patch -p1 --forward < 0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch || true
 
           #Change to common directory and apply SUSFS patch
           cd ..
@@ -127,12 +127,12 @@ jobs:
 
           cp ../kernel_patches/sys.c_fix.patch ./
           patch -p1 --fuzz=3 < ./sys.c_fix.patch || true
-          cp ../kernel_patches/mount.h_fix.patch ./
-          patch -p1 --fuzz=3 < ./mount.h_fix.patch || true
-          cp ../kernel_patches/sched.h_fix.patch ./
-          patch -p1 --fuzz=3 < ./sched.h_fix.patch || true
-          cp ../kernel_patches/user.h_fix.patch ./
-          patch -p1 --fuzz=3 < ./user.h_fix.patch || true
+          #cp ../kernel_patches/mount.h_fix.patch ./
+          #patch -p1 --fuzz=3 < ./mount.h_fix.patch || true
+          #cp ../kernel_patches/sched.h_fix.patch ./
+          #patch -p1 --fuzz=3 < ./sched.h_fix.patch || true
+          #cp ../kernel_patches/user.h_fix.patch ./
+          #patch -p1 --fuzz=3 < ./user.h_fix.patch || true
            git add -A && git commit -a -m "BUILD Kernel" || true
            git rm --cached KernelSU-Next
 
