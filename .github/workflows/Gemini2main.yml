@@ -119,13 +119,13 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
           # Apply KSU Hooks, Hide Stuff, SUSFS Sultan Fixes
-          cp ../kernel_patches/new_hooks.patch ./
-          patch -p1 --fuzz=3 < ./new_hooks.patch
+          cp ../kernel_patches/next/next_hooks.patch ./
+          patch -p1 --fuzz=3 < ./next_hooks.patch
           
           cp ../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < ./69_hide_stuff.patch || true
 
-          cp ../kernel_patches/sys.c_fix.patch ./
+          cp ../kernel_patches//sultan/sys.c_fix.patch ./
           patch -p1 --fuzz=3 < ./sys.c_fix.patch || true
           #cp ../kernel_patches/mount.h_fix.patch ./
           #patch -p1 --fuzz=3 < ./mount.h_fix.patch || true
