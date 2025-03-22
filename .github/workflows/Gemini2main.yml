@@ -92,11 +92,11 @@ jobs:
       - name: Add KernelSU
         run: |
           cd "${{ env.CONFIG }}"
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs-dev
           cd KernelSU-Next/kernel
           KSU_VERSION=$(( $(git rev-list --count HEAD) + 10200 ))
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV # Export KSUVER for later use
-          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
+          sed -i "s/DKSU_VERSION=11998/DKSU_VERSION=${KSU_VERSION}/" Makefile
           cd ../..
 
       - name: Apply Patches
@@ -119,8 +119,8 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
           # Apply KSU Hooks, Hide Stuff, SUSFS Sultan Fixes
-          cp ../kernel_patches/next/next_hooks.patch ./
-          patch -p1 --fuzz=3 < ./next_hooks.patch
+          cp ../kernel_patches/next/syscall_hooks.patch ./
+          patch -p1 --fuzz=3 < ./syscall_hooks.patch
           
           cp ../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < ./69_hide_stuff.patch || true
